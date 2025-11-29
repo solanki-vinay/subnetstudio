@@ -45,6 +45,7 @@ td,th{padding:6px;border-bottom:1px dashed rgba(0,0,0,0.1);text-align:left;}
       <div class="tool-card" onclick="openPage('ipv4')"><div class="tool-icon">🌐</div><div class="tool-title">IPv4</div><div class="tool-desc">Subnet calculator</div></div>
       <div class="tool-card" onclick="openPage('ipv6')"><div class="tool-icon">🧩</div><div class="tool-title">IPv6</div><div class="tool-desc">Subnet calculator</div></div>
       <div class="tool-card" onclick="openPage('supernet')"><div class="tool-icon">📦</div><div class="tool-title">Supernetting</div><div class="tool-desc">Summarize IPv4 networks</div></div>
+      <div class="tool-card" onclick="openPage('cidr')"><div class="tool-icon">📐</div><div class="tool-title">CIDR Converter</div><div class="tool-desc">CIDR ↔ Netmask</div></div>
     </div>
   </div>
 </div>
@@ -151,6 +152,32 @@ td,th{padding:6px;border-bottom:1px dashed rgba(0,0,0,0.1);text-align:left;}
   </div>
 </div>
 
+<!-- CIDR Converter -->
+<div id="page-cidr" class="page">
+  <div class="back-btn" onclick="openPage('home')">← Back</div>
+  <div class="app">
+    <h1>CIDR ↔ Netmask Converter</h1>
+    <div class="controls" style="grid-template-columns:1fr 120px 120px;">
+      <div class="input"><label>Enter CIDR or Netmask</label>
+        <input id="cidrInput" placeholder="/24 or 255.255.255.0">
+      </div>
+      <div class="btn primary" id="cidrCalc">Convert</div>
+      <div class="btn" id="cidrReset">Reset</div>
+    </div>
+    <div id="cidrMessage"></div>
+    <div class="results" id="cidrResults">
+      <div class="cardbox"><h3>Result</h3>
+        <table>
+          <tr><th>Prefix length</th><td id="cidrPrefix"></td></tr>
+          <tr><th>Netmask</th><td id="cidrMask"></td></tr>
+          <tr><th>Wildcard mask</th><td id="cidrWildcard"></td></tr>
+          <tr><th>Binary mask</th><td id="cidrBinary" class="binary"></td></tr>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script>
 // Page switch
 function openPage(page){document.querySelectorAll('.page').forEach(p=>p.style.display='none');document.getElementById('page-'+page).style.display='block';}
@@ -164,11 +191,29 @@ function ipToInt(ip){
 function intToIp(int){return[(int>>>24)&255,(int>>>16)&255,(int>>>8)&255,int&255].join('.');}
 function octets(int){return[(int>>>24)&255,(int>>>16)&255,(int>>>8)&255,int&255];}
 function intToBinaryDots(int){return octets(int).map(n=>n.toString(2).padStart(8,'0')).join('.');}
-function prefixToMask(prefix){if(prefix<0||prefix>32)return null;return prefix===0?0:(~((1<<(32-prefix))-1))>>>0;}
-function maskToPrefix(maskInt){let c=0;for(let i=31;i>=0;i--){if(maskInt&(1<<i))c++;else break;}if(((maskInt<<c)>>>0)!==0)return null;return c;}
+function prefixToMask(prefix){if(isNaN(prefix)||prefix<0||prefix>32)return null;return prefix===0?0:(~((1<<(32-prefix))-1))>>>0;}
+function maskToPrefix(maskInt){
+  if(maskInt===null) return null;
+  let c=0; for(let i=31;i>=0;i--){ if(maskInt&(1<<i)) c++; else break; }
+  if(((maskInt<<c)>>>0)!==0) return null; // ensure contiguous ones
+  return c;
+}
 function wildcardFromMask(maskInt){return(~maskInt)>>>0;}
-function isPrivate(ipInt){const f=(ipInt>>>24)&255; if(f===10)return true; if(ipInt>=ipToInt('172.16.0.0')&&ipInt<=ipToInt('172.31.255.255'))return true; if(ipInt>=ipToInt('192.168.0.0')&&ipInt<=ipToInt('192.168.255.255'))return true; return false;}
-function classOf(ipInt){const first=(ipInt>>>24)&255; if(first<=127)return'A'; if(first<=191)return'B'; if(first<=223)return'C'; if(first<=239)return'D (Multicast)'; return'E (Reserved)';}
+function isPrivate(ipInt){
+  const f=(ipInt>>>24)&255;
+  if(f===10) return true;
+  if(ipInt>=ipToInt('172.16.0.0')&&ipInt<=ipToInt('172.31.255.255'))return true;
+  if(ipInt>=ipToInt('192.168.0.0')&&ipInt<=ipToInt('192.168.255.255'))return true;
+  return false;
+}
+function classOf(ipInt){
+  const first=(ipInt>>>24)&255;
+  if(first<=127)return'A';
+  if(first<=191)return'B';
+  if(first<=223)return'C';
+  if(first<=239)return'D (Multicast)';
+  return'E (Reserved)';
+}
 
 /* IPv4 calculator */
 function parseIPv4Input(raw,px){
@@ -177,8 +222,12 @@ function parseIPv4Input(raw,px){
   if(raw.includes('/')){const[a,p]=raw.split('/'); ipStr=a.trim(); prefix=parseInt(p.trim(),10);}
   else{
     const parts=raw.split(' ');
-    if(parts.length===2){ ipStr=parts[0].trim(); maskStr=parts[1].trim();
-      if(maskStr.includes('.')){const mInt=ipToInt(maskStr); if(mInt===null) return null; prefix=maskToPrefix(mInt);} else {prefix=parseInt(maskStr,10);}
+    if(parts.length===2){
+      ipStr=parts[0].trim(); maskStr=parts[1].trim();
+      if(maskStr.includes('.')){
+        const mInt=ipToInt(maskStr); if(mInt===null) return null;
+        prefix=maskToPrefix(mInt);
+      } else {prefix=parseInt(maskStr,10);}
     }
   }
   if(px){ let p=parseInt(px,10); if(!isNaN(p)) prefix=p; }
@@ -204,8 +253,8 @@ function renderIPv4(parsed){
   document.getElementById('r_wildcard').textContent=intToIp(d.wild);
   document.getElementById('r_network').textContent=intToIp(d.network);
   document.getElementById('r_broadcast').textContent=intToIp(d.broadcast);
-  document.getElementById('r_hostmin').textContent=d.hostMin?intToIp(d.hostMin):'-';
-  document.getElementById('r_hostmax').textContent=d.hostMax?intToIp(d.hostMax):'-';
+  document.getElementById('r_hostmin').textContent=d.hostMin!==null?intToIp(d.hostMin):'-';
+  document.getElementById('r_hostmax').textContent=d.hostMax!==null?intToIp(d.hostMax):'-';
   document.getElementById('r_hostsnet').textContent=d.hostsPer;
   document.getElementById('r_class').textContent=classOf(ipInt);
   document.getElementById('r_scope').textContent=isPrivate(ipInt)?"Private":"Public";
@@ -220,10 +269,10 @@ function renderIPv4(parsed){
   document.getElementById('b_network_bin').textContent=intToBinaryDots(d.network);
   document.getElementById('b_broadcast').textContent=intToIp(d.broadcast);
   document.getElementById('b_broadcast_bin').textContent=intToBinaryDots(d.broadcast);
-  document.getElementById('b_hostmin').textContent=d.hostMin?intToIp(d.hostMin):'-';
-  document.getElementById('b_hostmin_bin').textContent=d.hostMin?intToBinaryDots(d.hostMin):'-';
-  document.getElementById('b_hostmax').textContent=d.hostMax?intToIp(d.hostMax):'-';
-  document.getElementById('b_hostmax_bin').textContent=d.hostMax?intToBinaryDots(d.hostMax):'-';
+  document.getElementById('b_hostmin').textContent=d.hostMin!==null?intToIp(d.hostMin):'-';
+  document.getElementById('b_hostmin_bin').textContent=d.hostMin!==null?intToBinaryDots(d.hostMin):'-';
+  document.getElementById('b_hostmax').textContent=d.hostMax!==null?intToIp(d.hostMax):'-';
+  document.getElementById('b_hostmax_bin').textContent=d.hostMax!==null?intToBinaryDots(d.hostMax):'-';
   document.getElementById('results').style.display="grid";
   showMessage("Calculated ✓",false);
 }
@@ -258,15 +307,27 @@ function expandIPv6(addr){
 function compressIPv6(expanded){
   const parts=expanded.split(':').map(h=>h.replace(/^0+/, '')||'0');
   let bestStart=-1,bestLen=0,curStart=-1,curLen=0;
-  for(let i=0;i<8;i++){ if(parts[i]==='0'){ if(curStart===-1)curStart=i; curLen++; if(curLen>bestLen){bestLen=curLen; bestStart=curStart;} } else {curStart=-1;curLen=0;} }
-  if(bestLen>1){ const before=parts.slice(0,bestStart).join(':'); const after=parts.slice(bestStart+bestLen).join(':'); return (before?before:'')+'::'+(after?after:''); }
+  for(let i=0;i<8;i++){
+    if(parts[i]==='0'){ if(curStart===-1)curStart=i; curLen++; if(curLen>bestLen){bestLen=curLen; bestStart=curStart;} }
+    else {curStart=-1;curLen=0;}
+  }
+  if(bestLen>1){
+    const before=parts.slice(0,bestStart).join(':'); const after=parts.slice(bestStart+bestLen).join(':');
+    return (before?before:'')+'::'+(after?after:'');
+  }
   return parts.join(':');
 }
 function ipv6ToBigInt(expanded){
-  const parts=expanded.split(':').map(h=>parseInt(h,16)); let val=0n; for(let i=0;i<8;i++){ val=(val<<16n)+BigInt(parts[i]); } return val;
+  const parts=expanded.split(':').map(h=>parseInt(h,16)); let val=0n;
+  for(let i=0;i<8;i++){ val=(val<<16n)+BigInt(parts[i]); }
+  return val;
 }
 function bigIntToIPv6(big){
-  const parts=[]; for(let i=0;i<8;i++){ const shift=16n*BigInt(7-i); const hex=(big>>shift)&0xffffn; parts.push(hex.toString(16).padStart(4,'0')); }
+  const parts=[];
+  for(let i=0;i<8;i++){
+    const shift=16n*BigInt(7-i); const hex=(big>>shift)&0xffffn;
+    parts.push(hex.toString(16).padStart(4,'0'));
+  }
   return parts.join(':');
 }
 
@@ -363,6 +424,46 @@ document.getElementById('superCalc').onclick=()=>{
 document.getElementById('superReset').onclick=()=>{
   document.getElementById('superInput').value=""; const m=document.getElementById('superMessage'); m.textContent=""; m.className="";
   document.getElementById('superResults').style.display="none";
+};
+
+/* CIDR ↔ Netmask Converter */
+document.getElementById('cidrCalc').onclick=()=>{
+  const raw=document.getElementById('cidrInput').value.trim();
+  const msg=document.getElementById('cidrMessage');
+  msg.textContent=""; msg.className="";
+  let prefix=null, maskInt=null;
+
+  if(!raw){ msg.textContent="Enter /prefix or dotted mask"; msg.className="message-err"; return; }
+
+  if(raw.startsWith('/')){
+    prefix=parseInt(raw.slice(1),10);
+    maskInt=prefixToMask(prefix);
+  } else if(raw.includes('.')){
+    maskInt=ipToInt(raw);
+    prefix=maskToPrefix(maskInt);
+  } else {
+    // allow plain number like "24"
+    const p = parseInt(raw,10);
+    if(!isNaN(p)) { prefix=p; maskInt=prefixToMask(prefix); }
+  }
+
+  if(prefix===null || isNaN(prefix) || prefix<0 || prefix>32 || maskInt===null){
+    msg.textContent="Invalid input"; msg.className="message-err";
+    document.getElementById('cidrResults').style.display="none";
+    return;
+  }
+
+  document.getElementById('cidrPrefix').textContent=prefix;
+  document.getElementById('cidrMask').textContent=intToIp(maskInt);
+  document.getElementById('cidrWildcard').textContent=intToIp(wildcardFromMask(maskInt));
+  document.getElementById('cidrBinary').textContent=intToBinaryDots(maskInt);
+  document.getElementById('cidrResults').style.display="grid";
+  msg.textContent="Converted ✓"; msg.className="message-ok";
+};
+document.getElementById('cidrReset').onclick=()=>{
+  document.getElementById('cidrInput').value="";
+  document.getElementById('cidrMessage').textContent="";
+  document.getElementById('cidrResults').style.display="none";
 };
 </script>
 
