@@ -3,231 +3,381 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Subnet Tools</title>
-
+<title>Subnet Studio</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
 <style>
-:root { --bg:#f5f6fa; --card:#fff; --muted:#64748b; --accent:#06b6d4; --accent2:#7c3aed; --text:#1e293b; }
+:root{
+  --bg:#f3f6fb;--card:#fff;--muted:#6b7280;--accent:#06b6d4;--accent2:#7c3aed;--text:#0f172a;
+}
 html,body{margin:0;font-family:Inter,ui-sans-serif;background:var(--bg);color:var(--text);}
+.container{max-width:1200px;margin:0 auto;padding:20px;position:relative;}
+/* Logo top-left */
+.logo-top{position:absolute;top:20px;left:20px;z-index:10;}
+.logo-top img{width:72px;height:auto;}
+/* Center headline */
+.headline{text-align:center;margin-top:120px;margin-bottom:40px;}
+.headline h1{font-size:32px;font-weight:800;color:var(--text);margin:0;}
+/* Tool grid */
+.tool-grid{display:grid;gap:18px;grid-template-columns:repeat(4,1fr);}
+@media(max-width:1200px){.tool-grid{grid-template-columns:repeat(3,1fr);}}
+@media(max-width:900px){.tool-grid{grid-template-columns:repeat(2,1fr);}}
+@media(max-width:600px){.tool-grid{grid-template-columns:repeat(1,1fr);}}
+.tool-card{background:var(--card);border-radius:12px;padding:18px;box-shadow:0 6px 18px rgba(0,0,0,0.08);cursor:pointer;transition:.2s;}
+.tool-card:hover{transform:translateY(-6px);box-shadow:0 12px 24px rgba(0,0,0,0.12);}
+.tool-icon{font-size:28px;}
+.tool-title{font-size:16px;font-weight:700;}
+.tool-desc{font-size:13px;color:var(--muted);}
+/* Pages and apps */
 .page{display:none;}
-.home-wrapper{padding:40px 20px;min-height:100vh;}
-.home-title{text-align:center;font-size:28px;font-weight:700;margin-bottom:30px;}
-.tool-grid{display:flex;gap:24px;justify-content:center;flex-wrap:wrap;}
-.tool-card{width:260px;background:var(--card);border-radius:14px;padding:24px;box-shadow:0 6px 16px rgba(0,0,0,0.08);cursor:pointer;transition:.25s;}
-.tool-card:hover{transform:translateY(-6px);box-shadow:0 10px 20px rgba(0,0,0,0.12);}
-.tool-icon{font-size:32px;margin-bottom:8px;}
-.tool-title{font-size:18px;font-weight:600;margin-bottom:6px;}
-.tool-desc{font-size:14px;color:var(--muted);}
-.back-btn{margin:20px;font-size:16px;color:var(--accent2);cursor:pointer;}
-.app{max-width:960px;margin:20px auto;padding:24px;border-radius:12px;background:var(--card);box-shadow:0 8px 24px rgba(0,0,0,0.08);}
-.controls{display:grid;grid-template-columns:1fr 160px 120px;gap:12px;margin-top:18px;}
-.input,.btn{background:#f9fafb;padding:10px;border-radius:8px;border:1px solid rgba(0,0,0,0.08);}
-.input label{font-size:13px;color:var(--muted);margin-bottom:6px;display:block;}
-.input input,textarea{width:100%;background:transparent;border:0;outline:none;font-size:16px;}
-.btn{display:flex;justify-content:center;align-items:center;cursor:pointer;user-select:none;}
-.btn.primary{background:linear-gradient(90deg,var(--accent),var(--accent2));color:#fff;font-weight:600;}
-.results{margin-top:20px;display:none;grid-template-columns:1fr;gap:18px;}
-.cardbox{padding:16px;border-radius:10px;background:var(--card);box-shadow:0 4px 12px rgba(0,0,0,0.05);}
-.cardbox h3{margin:0 0 10px;}
-table{width:100%;border-collapse:collapse;}
-td,th{padding:6px;border-bottom:1px dashed rgba(0,0,0,0.1);text-align:left;}
-.mono{font-family:monospace;}
-.binary{font-family:monospace;background:#f1f5f9;padding:4px;border-radius:4px;display:inline-block;word-break:break-word;}
-.message-ok{color:#16a34a;} .message-err{color:#dc2626;}
+.page .app{background:var(--card);border-radius:12px;padding:18px;box-shadow:0 6px 18px rgba(0,0,0,0.08);margin-top:12px;}
+.back-btn{color:var(--accent2);cursor:pointer;font-weight:600;margin-bottom:12px;display:inline-block}
+/* Controls */
+.controls{display:grid;grid-template-columns:1fr 160px 120px;gap:12px;margin-top:8px}
+@media(max-width:900px){.controls{grid-template-columns:1fr}.controls .btn{width:100%}}
+.input,.btn{background:#fbfdff;padding:10px;border-radius:10px;border:1px solid rgba(0,0,0,0.08)}
+.input label{font-size:13px;color:var(--muted);display:block;margin-bottom:6px}
+.input input,.input textarea,.input select{width:100%;border:0;background:transparent;outline:none;font-size:15px}
+.btn{display:inline-flex;align-items:center;justify-content:center;cursor:pointer}
+.btn.primary{background:linear-gradient(90deg,var(--accent),var(--accent2));color:#fff;font-weight:700;border:0}
+/* Results and tables */
+.results{margin-top:18px;display:none;gap:14px}
+.cardbox{padding:14px;border-radius:10px;background:#fff;box-shadow:0 6px 18px rgba(0,0,0,0.04)}
+.cardbox h3{margin:0 0 10px;font-size:16px}
+.table-wrapper{overflow:auto;border-radius:8px}
+table{width:100%;border-collapse:collapse;min-width:640px}
+th,td{padding:8px 10px;text-align:left;border-bottom:1px dashed rgba(0,0,0,0.06)}
+th{font-weight:600;font-size:13px;color:var(--muted)}
+.mono{font-family:monospace}
+.binary{font-family:monospace;background:#f1f5f9;padding:6px;border-radius:6px;display:inline-block}
+/* Notices */
+.notice{margin-top:12px;padding:10px;border-radius:8px;border:1px solid rgba(0,0,0,0.06)}
+.ok{background:#ecfdf5;border-color:#bbf7d0;color:#065f46}
+.warn{background:#fffbeb;border-color:#fde68a;color:#92400e}
+.err{background:#fff1f2;border-color:#fecaca;color:#7f1d1d}
+/* Footer */
+.footer{margin-top:12px;color:var(--muted);font-size:13px}
 </style>
 </head>
 <body>
 
-<!-- HOME -->
-<div id="page-home" class="page" style="display:block;">
-  <div class="home-wrapper">
-    <div class="home-title">Every tool you need to work with IPs in one place</div>
+<div class="container">
+  <!-- Logo top-left (use your own file: logo.png) -->
+  <div class="logo-top">
+    <a href="#" aria-label="Subnet Studio">
+      <img src="logo.png" alt="Subnet Studio logo">
+    </a>
+  </div>
+
+  <!-- Centered headline -->
+  <div class="headline">
+    <h1>Every tool you need to work with IPs in one place</h1>
+  </div>
+
+  <!-- HOME -->
+  <div id="page-home" class="page" style="display:block">
     <div class="tool-grid">
-      <div class="tool-card" onclick="openPage('ipv4')"><div class="tool-icon">🌐</div><div class="tool-title">IPv4</div><div class="tool-desc">Subnet calculator</div></div>
-      <div class="tool-card" onclick="openPage('ipv6')"><div class="tool-icon">🧩</div><div class="tool-title">IPv6</div><div class="tool-desc">Subnet calculator</div></div>
-      <div class="tool-card" onclick="openPage('supernet')"><div class="tool-icon">📦</div><div class="tool-title">Supernetting</div><div class="tool-desc">Summarize IPv4 networks</div></div>
-      <div class="tool-card" onclick="openPage('cidr')"><div class="tool-icon">📐</div><div class="tool-title">CIDR Converter</div><div class="tool-desc">CIDR ↔ Netmask</div></div>
+      <div class="tool-card" onclick="openPage('ipv4')">
+        <div class="tool-icon">🌐</div>
+        <div class="tool-title">IPv4</div>
+        <div class="tool-desc">Subnet calculator — address, network, broadcast, hosts, binary</div>
+      </div>
+      <div class="tool-card" onclick="openPage('ipv6')">
+        <div class="tool-icon">🧩</div>
+        <div class="tool-title">IPv6</div>
+        <div class="tool-desc">Prefix, network, first/last, total addresses</div>
+      </div>
+      <div class="tool-card" onclick="openPage('supernet')">
+        <div class="tool-icon">📦</div>
+        <div class="tool-title">Supernetting</div>
+        <div class="tool-desc">Summarize multiple IPv4 networks</div>
+      </div>
+      <div class="tool-card" onclick="openPage('cidr')">
+        <div class="tool-icon">📐</div>
+        <div class="tool-title">CIDR Converter</div>
+        <div class="tool-desc">Convert /prefix ↔ dotted mask</div>
+      </div>
+      <div class="tool-card" onclick="openPage('alloc')">
+        <div class="tool-icon">🗂️</div>
+        <div class="tool-title">Subnet Allocation</div>
+        <div class="tool-desc">Allocate multiple subnets from a base</div>
+      </div>
     </div>
   </div>
-</div>
 
-<!-- IPv4 -->
-<div id="page-ipv4" class="page">
-  <div class="back-btn" onclick="openPage('home')">← Back</div>
-  <div class="app">
-    <h1>IPv4 Calculator</h1>
-    <div class="controls">
-      <div class="input"><label>IPv4 address & mask</label><input id="addrInput" placeholder="192.168.1.10/24 or 10.0.0.5 255.255.255.0"></div>
-      <div class="input"><label>Optional prefix</label><input id="prefixInput" placeholder="24"></div>
-      <div style="display:flex;flex-direction:column;gap:8px;">
-        <div class="btn primary" id="calcBtn">Calculate</div>
-        <div class="btn" id="resetBtn">Reset</div>
+  <!-- IPv4 Calculator -->
+  <div id="page-ipv4" class="page">
+    <div class="back-btn" onclick="openPage('home')">← Back</div>
+    <div class="app">
+      <h1>IPv4 Calculator</h1>
+      <div class="controls">
+        <div class="input">
+          <label>IPv4 address & mask</label>
+          <input id="addrInput" placeholder="192.168.1.10/24 or 10.0.0.5 255.255.255.0">
+        </div>
+        <div class="input">
+          <label>Optional prefix</label>
+          <input id="prefixInput" placeholder="24">
+        </div>
+        <div style="display:flex;flex-direction:column;gap:8px;align-items:stretch;">
+          <div class="btn primary" id="calcBtn">Calculate</div>
+          <div class="btn" id="resetBtn">Reset</div>
+        </div>
       </div>
-    </div>
-    <div id="message"></div>
-    <div class="results" id="results">
-      <div class="cardbox"><h3>Summary</h3>
-        <table>
-          <tr><th>Address</th><td id="r_address"></td></tr>
-          <tr><th>Netmask</th><td id="r_netmask"></td></tr>
-          <tr><th>Wildcard</th><td id="r_wildcard"></td></tr>
-          <tr><th>Network</th><td id="r_network"></td></tr>
-          <tr><th>Broadcast</th><td id="r_broadcast"></td></tr>
-          <tr><th>Host min</th><td id="r_hostmin"></td></tr>
-          <tr><th>Host max</th><td id="r_hostmax"></td></tr>
-          <tr><th>Hosts</th><td id="r_hostsnet"></td></tr>
-          <tr><th>Class</th><td id="r_class"></td></tr>
-          <tr><th>Scope</th><td id="r_scope"></td></tr>
-        </table>
-      </div>
-      <div class="cardbox"><h3>Binary</h3>
-        <table>
-          <tr><td>Address</td><td id="b_address"></td><td id="b_address_bin" class="binary"></td></tr>
-          <tr><td>Netmask</td><td id="b_netmask"></td><td id="b_netmask_bin" class="binary"></td></tr>
-          <tr><td>Wildcard</td><td id="b_wildcard"></td><td id="b_wildcard_bin" class="binary"></td></tr>
-          <tr><td>Network</td><td id="b_network"></td><td id="b_network_bin" class="binary"></td></tr>
-          <tr><td>Broadcast</td><td id="b_broadcast"></td><td id="b_broadcast_bin" class="binary"></td></tr>
-          <tr><td>HostMin</td><td id="b_hostmin"></td><td id="b_hostmin_bin" class="binary"></td></tr>
-          <tr><td>HostMax</td><td id="b_hostmax"></td><td id="b_hostmax_bin" class="binary"></td></tr>
-        </table>
-      </div>
-    </div>
-  </div>
-</div>
 
-<!-- IPv6 -->
-<div id="page-ipv6" class="page">
-  <div class="back-btn" onclick="openPage('home')">← Back</div>
-  <div class="app">
-    <h1>IPv6 Calculator</h1>
-    <div class="controls">
-      <div class="input"><label>IPv6 address & prefix</label><input id="ipv6Input" placeholder="2001:db8::1/64"></div>
-      <div style="display:flex;flex-direction:column;gap:8px;">
-        <div class="btn primary" id="calcBtn6">Calculate</div>
-        <div class="btn" id="resetBtn6">Reset</div>
-      </div>
-    </div>
-    <div id="message6"></div>
-    <div class="results" id="results6">
-      <div class="cardbox"><h3>Summary</h3>
-        <table>
-          <tr><th>Address</th><td id="r6_address"></td></tr>
-          <tr><th>Prefix</th><td id="r6_prefix"></td></tr>
-          <tr><th>Network</th><td id="r6_network"></td></tr>
-          <tr><th>First address</th><td id="r6_first"></td></tr>
-          <tr><th>Last address</th><td id="r6_last"></td></tr>
-          <tr><th>Total addresses</th><td id="r6_range"></td></tr>
-        </table>
-      </div>
-    </div>
-  </div>
-</div>
+      <div id="message" style="margin-top:12px"></div>
 
-<!-- Supernetting -->
-<div id="page-supernet" class="page">
-  <div class="back-btn" onclick="openPage('home')">← Back</div>
-  <div class="app">
-    <h1>Supernetting Tool (IPv4)</h1>
-    <div class="controls" style="grid-template-columns:1fr 120px 120px;">
-      <div class="input"><label>Enter networks (one per line)</label>
-        <textarea id="superInput" rows="6" placeholder="192.168.0.0/24&#10;192.168.1.0/24&#10;192.168.2.0/24"></textarea>
-      </div>
-      <div class="btn primary" id="superCalc">Summarize</div>
-      <div class="btn" id="superReset">Reset</div>
-    </div>
-    <div id="superMessage"></div>
-    <div class="results" id="superResults">
-      <div class="cardbox"><h3>Result</h3>
-        <table>
-          <tr><th>Supernet</th><td id="superSupernet"></td><td id="superSupernetBin" class="binary"></td></tr>
-          <tr><th>Network address</th><td id="superNetwork"></td><td id="superNetworkBin" class="binary"></td></tr>
-          <tr><th>First address</th><td id="superFirst"></td><td id="superFirstBin" class="binary"></td></tr>
-          <tr><th>Last address</th><td id="superLast"></td><td id="superLastBin" class="binary"></td></tr>
-          <tr><th>Broadcast address</th><td id="superBroadcast"></td><td id="superBroadcastBin" class="binary"></td></tr>
-          <tr><th>Total addresses</th><td id="superTotal"></td></tr>
-          <tr><th>Usable addresses</th><td id="superUsable"></td></tr>
-          <tr><th>Prefix length</th><td id="superPrefix"></td></tr>
-        </table>
-      </div>
-    </div>
-  </div>
-</div>
+      <div class="results" id="results">
+        <div class="cardbox">
+          <h3>Summary</h3>
+          <div class="table-wrapper">
+            <table>
+              <tr><th>Address</th><td id="r_address"></td></tr>
+              <tr><th>Netmask</th><td id="r_netmask"></td></tr>
+              <tr><th>Wildcard</th><td id="r_wildcard"></td></tr>
+              <tr><th>Network</th><td id="r_network"></td></tr>
+              <tr><th>Broadcast</th><td id="r_broadcast"></td></tr>
+              <tr><th>Host min</th><td id="r_hostmin"></td></tr>
+              <tr><th>Host max</th><td id="r_hostmax"></td></tr>
+              <tr><th>Hosts</th><td id="r_hostsnet"></td></tr>
+              <tr><th>Class</th><td id="r_class"></td></tr>
+              <tr><th>Scope</th><td id="r_scope"></td></tr>
+            </table>
+          </div>
+        </div>
 
-<!-- CIDR Converter -->
-<div id="page-cidr" class="page">
-  <div class="back-btn" onclick="openPage('home')">← Back</div>
-  <div class="app">
-    <h1>CIDR ↔ Netmask Converter</h1>
-    <div class="controls" style="grid-template-columns:1fr 120px 120px;">
-      <div class="input"><label>Enter CIDR or Netmask</label>
-        <input id="cidrInput" placeholder="/24 or 255.255.255.0">
-      </div>
-      <div class="btn primary" id="cidrCalc">Convert</div>
-      <div class="btn" id="cidrReset">Reset</div>
-    </div>
-    <div id="cidrMessage"></div>
-    <div class="results" id="cidrResults">
-      <div class="cardbox"><h3>Result</h3>
-        <table>
-          <tr><th>Prefix length</th><td id="cidrPrefix"></td></tr>
-          <tr><th>Netmask</th><td id="cidrMask"></td></tr>
-          <tr><th>Wildcard mask</th><td id="cidrWildcard"></td></tr>
-          <tr><th>Binary mask</th><td id="cidrBinary" class="binary"></td></tr>
-        </table>
+        <div class="cardbox" style="margin-top:12px">
+          <h3>Binary</h3>
+          <div class="table-wrapper">
+            <table>
+              <tr><th>Field</th><th>Decimal</th><th>Binary</th></tr>
+              <tr><td>Address</td><td id="b_address"></td><td id="b_address_bin" class="binary"></td></tr>
+              <tr><td>Netmask</td><td id="b_netmask"></td><td id="b_netmask_bin" class="binary"></td></tr>
+              <tr><td>Wildcard</td><td id="b_wildcard"></td><td id="b_wildcard_bin" class="binary"></td></tr>
+              <tr><td>Network</td><td id="b_network"></td><td id="b_network_bin" class="binary"></td></tr>
+              <tr><td>Broadcast</td><td id="b_broadcast"></td><td id="b_broadcast_bin" class="binary"></td></tr>
+              <tr><td>HostMin</td><td id="b_hostmin"></td><td id="b_hostmin_bin" class="binary"></td></tr>
+              <tr><td>HostMax</td><td id="b_hostmax"></td><td id="b_hostmax_bin" class="binary"></td></tr>
+            </table>
+          </div>
+        </div>
       </div>
     </div>
   </div>
+
+  <!-- IPv6 Calculator -->
+  <div id="page-ipv6" class="page">
+    <div class="back-btn" onclick="openPage('home')">← Back</div>
+    <div class="app">
+      <h1>IPv6 Calculator</h1>
+      <div class="controls">
+        <div class="input">
+          <label>IPv6 address & prefix</label>
+          <input id="ipv6Input" placeholder="2001:db8::1/64">
+        </div>
+        <div style="display:flex;flex-direction:column;gap:8px;align-items:stretch;">
+          <div class="btn primary" id="calcBtn6">Calculate</div>
+          <div class="btn" id="resetBtn6">Reset</div>
+        </div>
+      </div>
+
+      <div id="message6" style="margin-top:12px"></div>
+
+      <div class="results" id="results6">
+        <div class="cardbox">
+          <h3>Summary</h3>
+          <div class="table-wrapper">
+            <table>
+              <tr><th>Address</th><td id="r6_address"></td></tr>
+              <tr><th>Prefix</th><td id="r6_prefix"></td></tr>
+              <tr><th>Network</th><td id="r6_network"></td></tr>
+              <tr><th>First address</th><td id="r6_first"></td></tr>
+              <tr><th>Last address</th><td id="r6_last"></td></tr>
+              <tr><th>Total addresses</th><td id="r6_range"></td></tr>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Supernetting -->
+  <div id="page-supernet" class="page">
+    <div class="back-btn" onclick="openPage('home')">← Back</div>
+    <div class="app">
+      <h1>Supernetting Tool (IPv4)</h1>
+      <div class="controls" style="grid-template-columns:1fr 120px 120px;">
+        <div class="input">
+          <label>Enter networks (one per line)</label>
+          <textarea id="superInput" rows="6" placeholder="192.168.0.0/24&#10;192.168.1.0/24&#10;192.168.2.0/24"></textarea>
+        </div>
+        <div class="btn primary" id="superCalc">Summarize</div>
+        <div class="btn" id="superReset">Reset</div>
+      </div>
+
+      <div id="superMessage" style="margin-top:12px"></div>
+
+      <div class="results" id="superResults">
+        <div class="cardbox">
+          <h3>Result</h3>
+          <div class="table-wrapper">
+            <table>
+              <tr><th>Supernet</th><td id="superSupernet"></td><td id="superSupernetBin" class="binary"></td></tr>
+              <tr><th>Network address</th><td id="superNetwork"></td><td id="superNetworkBin" class="binary"></td></tr>
+              <tr><th>First address</th><td id="superFirst"></td><td id="superFirstBin" class="binary"></td></tr>
+              <tr><th>Last address</th><td id="superLast"></td><td id="superLastBin" class="binary"></td></tr>
+              <tr><th>Broadcast address</th><td id="superBroadcast"></td><td id="superBroadcastBin" class="binary"></td></tr>
+              <tr><th>Total addresses</th><td id="superTotal"></td></tr>
+              <tr><th>Usable addresses</th><td id="superUsable"></td></tr>
+              <tr><th>Prefix length</th><td id="superPrefix"></td></tr>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CIDR Converter -->
+  <div id="page-cidr" class="page">
+    <div class="back-btn" onclick="openPage('home')">← Back</div>
+    <div class="app">
+      <h1>CIDR ↔ Netmask Converter</h1>
+      <div class="controls" style="grid-template-columns:1fr 120px 120px;">
+        <div class="input">
+          <label>Enter CIDR or Netmask</label>
+          <input id="cidrInput" placeholder="/24 or 255.255.255.0">
+        </div>
+        <div class="btn primary" id="cidrCalc">Convert</div>
+        <div class="btn" id="cidrReset">Reset</div>
+      </div>
+
+      <div id="cidrMessage" style="margin-top:12px"></div>
+
+      <div class="results" id="cidrResults">
+        <div class="cardbox">
+          <h3>Result</h3>
+          <div class="table-wrapper">
+            <table>
+              <tr><th>Prefix length</th><td id="cidrPrefix"></td></tr>
+              <tr><th>Netmask</th><td id="cidrMask"></td></tr>
+              <tr><th>Wildcard mask</th><td id="cidrWildcard"></td></tr>
+              <tr><th>Binary mask</th><td id="cidrBinary" class="binary"></td></tr>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Subnet Allocation -->
+  <div id="page-alloc" class="page">
+    <div class="back-btn" onclick="openPage('home')">← Back</div>
+    <div class="app">
+      <h1>Multiple Subnet Allocation Tool</h1>
+
+      <div class="controls" style="grid-template-columns:1fr;">
+        <div class="input"><label>Base network (CIDR)</label><input id="baseCidr" placeholder="e.g., 192.168.0.0/22"></div>
+      </div>
+
+      <div style="margin-top:14px;">
+        <label>Add desired subnets (keeps your order)</label>
+        <div class="inline" style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap;">
+          <select id="cidrSize" class="input" style="max-width:140px"></select>
+          <input id="cidrCount" type="number" min="1" value="1" class="input" style="max-width:120px" />
+          <input id="startIp" type="text" placeholder="Optional start (e.g., 192.168.1.0)" class="input" style="min-width:220px" />
+          <div class="btn" id="addBtn">Add</div>
+          <div class="btn" id="clearBtn">Clear</div>
+        </div>
+
+        <div id="planList" style="margin-top:12px">No subnets added yet.</div>
+      </div>
+
+      <div style="margin-top:12px">
+        <div class="btn primary" id="allocBtn">Allocate</div>
+      </div>
+
+      <div id="status" class="notice" style="display:none"></div>
+
+      <div class="results" id="allocResults">
+        <div class="cardbox">
+          <h3>Allocations</h3>
+          <div class="table-wrapper">
+            <table id="resultTable" style="display:none">
+              <thead>
+                <tr><th>#</th><th>Subnet</th><th>CIDR</th><th>Mask</th><th>Usable range</th><th>Broadcast</th><th>Size</th></tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+          <div id="summary" class="footer"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
 </div>
 
 <script>
-// Page switch
-function openPage(page){document.querySelectorAll('.page').forEach(p=>p.style.display='none');document.getElementById('page-'+page).style.display='block';}
-
-/* IPv4 helpers */
-function ipToInt(ip){
-  const parts=ip.trim().split('.').map(x=>parseInt(x,10));
-  if(parts.length!==4||parts.some(p=>isNaN(p)||p<0||p>255))return null;
-  return ((parts[0]<<24)>>>0)+((parts[1]<<16)>>>0)+((parts[2]<<8)>>>0)+(parts[3]>>>0);
+/* Page switch */
+function openPage(page){
+  document.querySelectorAll('.page').forEach(p=>p.style.display='none');
+  const el=document.getElementById('page-'+page);
+  if(el) el.style.display='block';
+  window.scrollTo({top:0,behavior:'smooth'});
 }
-function intToIp(int){return[(int>>>24)&255,(int>>>16)&255,(int>>>8)&255,int&255].join('.');}
-function octets(int){return[(int>>>24)&255,(int>>>16)&255,(int>>>8)&255,int&255];}
-function intToBinaryDots(int){return octets(int).map(n=>n.toString(2).padStart(8,'0')).join('.');}
-function prefixToMask(prefix){if(isNaN(prefix)||prefix<0||prefix>32)return null;return prefix===0?0:(~((1<<(32-prefix))-1))>>>0;}
+
+/* ---------- IPv4 helpers ---------- */
+function ipToInt(ip){
+  if(!ip) return null;
+  const parts=ip.trim().split('.');
+  if(parts.length!==4) return null;
+  const nums=parts.map(x=>parseInt(x,10));
+  if(nums.some(n=>isNaN(n)||n<0||n>255)) return null;
+  return ((nums[0]<<24)>>>0)+((nums[1]<<16)>>>0)+((nums[2]<<8)>>>0)+(nums[3]>>>0);
+}
+function intToIp(int){
+  return [(int>>>24)&255,(int>>>16)&255,(int>>>8)&255,int&255].join('.');
+}
+function octets(int){ return [(int>>>24)&255,(int>>>16)&255,(int>>>8)&255,int&255]; }
+function intToBinaryDots(int){ return octets(int).map(n=>n.toString(2).padStart(8,'0')).join('.'); }
+function prefixToMask(prefix){ if(isNaN(prefix)||prefix<0||prefix>32) return null; return prefix===0?0:(~((1<<(32-prefix))-1))>>>0; }
 function maskToPrefix(maskInt){
   if(maskInt===null) return null;
-  let c=0; for(let i=31;i>=0;i--){ if(maskInt&(1<<i)) c++; else break; }
-  if(((maskInt<<c)>>>0)!==0) return null; // ensure contiguous ones
+  let c=0;
+  for(let i=31;i>=0;i--){ if(maskInt&(1<<i)) c++; else break; }
+  if(((maskInt<<c)>>>0)!==0) return null;
   return c;
 }
-function wildcardFromMask(maskInt){return(~maskInt)>>>0;}
+function wildcardFromMask(maskInt){ return (~maskInt)>>>0; }
 function isPrivate(ipInt){
   const f=(ipInt>>>24)&255;
   if(f===10) return true;
-  if(ipInt>=ipToInt('172.16.0.0')&&ipInt<=ipToInt('172.31.255.255'))return true;
-  if(ipInt>=ipToInt('192.168.0.0')&&ipInt<=ipToInt('192.168.255.255'))return true;
+  if(ipInt>=ipToInt('172.16.0.0') && ipInt<=ipToInt('172.31.255.255')) return true;
+  if(ipInt>=ipToInt('192.168.0.0') && ipInt<=ipToInt('192.168.255.255')) return true;
   return false;
 }
 function classOf(ipInt){
   const first=(ipInt>>>24)&255;
-  if(first<=127)return'A';
-  if(first<=191)return'B';
-  if(first<=223)return'C';
-  if(first<=239)return'D (Multicast)';
-  return'E (Reserved)';
+  if(first<=127) return 'A';
+  if(first<=191) return 'B';
+  if(first<=223) return 'C';
+  if(first<=239) return 'D (Multicast)';
+  return 'E (Reserved)';
 }
 
 /* IPv4 calculator */
 function parseIPv4Input(raw,px){
-  raw=raw.trim(); if(!raw) return null;
+  if(!raw) return null;
+  raw=raw.trim();
   let ipStr=raw, prefix=null, maskStr=null;
-  if(raw.includes('/')){const[a,p]=raw.split('/'); ipStr=a.trim(); prefix=parseInt(p.trim(),10);}
-  else{
+  if(raw.includes('/')){ const [a,p]=raw.split('/'); ipStr=a.trim(); prefix=parseInt(p.trim(),10); }
+  else {
     const parts=raw.split(' ');
     if(parts.length===2){
       ipStr=parts[0].trim(); maskStr=parts[1].trim();
       if(maskStr.includes('.')){
         const mInt=ipToInt(maskStr); if(mInt===null) return null;
         prefix=maskToPrefix(mInt);
-      } else {prefix=parseInt(maskStr,10);}
+      } else { prefix=parseInt(maskStr,10); }
     }
   }
   if(px){ let p=parseInt(px,10); if(!isNaN(p)) prefix=p; }
@@ -238,15 +388,20 @@ function parseIPv4Input(raw,px){
 function calcIPv4(ipInt,prefix){
   const maskInt=prefixToMask(prefix), wild=wildcardFromMask(maskInt);
   const network=(ipInt&maskInt)>>>0, broadcast=(network|wild)>>>0;
-  let hostMin=null,hostMax=null,hostsPer=0;
-  if(prefix<=30){hostsPer=(1<<(32-prefix))-2;hostMin=(network+1)>>>0;hostMax=(broadcast-1)>>>0;}
-  else if(prefix===31){hostsPer=0;hostMin=network;hostMax=broadcast;}
-  else{hostsPer=1;hostMin=network;hostMax=network;}
-  return{maskInt,wild,network,broadcast,hostMin,hostMax,hostsPer};
+  let hostMin=null, hostMax=null, hostsPer=0;
+  if(prefix<=30){ hostsPer=(1<<(32-prefix))-2; hostMin=(network+1)>>>0; hostMax=(broadcast-1)>>>0; }
+  else if(prefix===31){ hostsPer=0; hostMin=network; hostMax=broadcast; }
+  else { hostsPer=1; hostMin=network; hostMax=network; }
+  return {maskInt,wild,network,broadcast,hostMin,hostMax,hostsPer};
 }
-function showMessage(s,err=false){const m=document.getElementById('message');m.className=err?'message-err':'message-ok';m.textContent=s;}
+function showMessage(s,err=false){
+  const m=document.getElementById('message');
+  m.className=err?'message-err':'message-ok';
+  m.textContent=s;
+}
 function renderIPv4(parsed){
-  const{ipInt,prefix}=parsed; if(prefix===null){showMessage("Prefix missing",true);return;}
+  const {ipInt,prefix}=parsed;
+  if(prefix===null){ showMessage("Prefix missing",true); return; }
   const d=calcIPv4(ipInt,prefix);
   document.getElementById('r_address').innerHTML=`<span class="mono">${intToIp(ipInt)}/${prefix}</span>`;
   document.getElementById('r_netmask').textContent=intToIp(d.maskInt);
@@ -258,7 +413,7 @@ function renderIPv4(parsed){
   document.getElementById('r_hostsnet').textContent=d.hostsPer;
   document.getElementById('r_class').textContent=classOf(ipInt);
   document.getElementById('r_scope').textContent=isPrivate(ipInt)?"Private":"Public";
-  // Binary
+
   document.getElementById('b_address').textContent=intToIp(ipInt);
   document.getElementById('b_address_bin').textContent=intToBinaryDots(ipInt);
   document.getElementById('b_netmask').textContent=intToIp(d.maskInt);
@@ -273,14 +428,15 @@ function renderIPv4(parsed){
   document.getElementById('b_hostmin_bin').textContent=d.hostMin!==null?intToBinaryDots(d.hostMin):'-';
   document.getElementById('b_hostmax').textContent=d.hostMax!==null?intToIp(d.hostMax):'-';
   document.getElementById('b_hostmax_bin').textContent=d.hostMax!==null?intToBinaryDots(d.hostMax):'-';
+
   document.getElementById('results').style.display="grid";
   showMessage("Calculated ✓",false);
 }
 document.getElementById('calcBtn').onclick=()=>{
   showMessage("");
   const parsed=parseIPv4Input(document.getElementById('addrInput').value,document.getElementById('prefixInput').value);
-  if(!parsed){showMessage("Invalid IPv4 input",true);document.getElementById('results').style.display="none";return;}
-  if(parsed.prefix===null){showMessage("Prefix not found",true);return;}
+  if(!parsed){ showMessage("Invalid IPv4 input",true); document.getElementById('results').style.display="none"; return; }
+  if(parsed.prefix===null){ showMessage("Prefix not found",true); return; }
   renderIPv4(parsed);
 };
 document.getElementById('resetBtn').onclick=()=>{
@@ -289,43 +445,53 @@ document.getElementById('resetBtn').onclick=()=>{
   document.getElementById('results').style.display="none";
 };
 
-/* IPv6 helpers */
+/* ---------- IPv6 helpers ---------- */
 function expandIPv6(addr){
+  if(!addr) return null;
   let ipv4Tail=null;
   if(addr.includes('.')){
-    const lastColon=addr.lastIndexOf(':'); const v4=addr.slice(lastColon+1);
+    const lastColon=addr.lastIndexOf(':');
+    const v4=addr.slice(lastColon+1);
     const parts=v4.split('.').map(x=>parseInt(x,10));
     if(parts.length!==4||parts.some(p=>isNaN(p)||p<0||p>255)) return null;
     ipv4Tail=[((parts[0]<<8)|parts[1]).toString(16),((parts[2]<<8)|parts[3]).toString(16)];
     addr=addr.slice(0,lastColon);
   }
-  const segs=addr.split('::'); let left=segs[0]?segs[0].split(':').filter(Boolean):[]; let right=segs[1]?segs[1].split(':').filter(Boolean):[];
-  const fill=8-(left.length+right.length+(ipv4Tail?2:0)); if(fill<0) return null;
-  const full=[...left,...Array(fill).fill('0'),...right]; if(ipv4Tail){full[6]=ipv4Tail[0];full[7]=ipv4Tail[1];}
-  if(full.length!==8) return null; return full.map(h=>h.padStart(4,'0').toLowerCase()).join(':');
+  const segs=addr.split('::');
+  let left=segs[0]?segs[0].split(':').filter(Boolean):[];
+  let right=segs[1]?segs[1].split(':').filter(Boolean):[];
+  const fill=8-(left.length+right.length+(ipv4Tail?2:0));
+  if(fill<0) return null;
+  const full=[...left,...Array(fill).fill('0'),...right];
+  if(ipv4Tail){ full[6]=ipv4Tail[0]; full[7]=ipv4Tail[1]; }
+  if(full.length!==8) return null;
+  return full.map(h=>h.padStart(4,'0').toLowerCase()).join(':');
 }
 function compressIPv6(expanded){
   const parts=expanded.split(':').map(h=>h.replace(/^0+/, '')||'0');
   let bestStart=-1,bestLen=0,curStart=-1,curLen=0;
   for(let i=0;i<8;i++){
-    if(parts[i]==='0'){ if(curStart===-1)curStart=i; curLen++; if(curLen>bestLen){bestLen=curLen; bestStart=curStart;} }
-    else {curStart=-1;curLen=0;}
+    if(parts[i]==='0'){ if(curStart===-1) curStart=i; curLen++; if(curLen>bestLen){bestLen=curLen; bestStart=curStart;} }
+    else { curStart=-1; curLen=0; }
   }
   if(bestLen>1){
-    const before=parts.slice(0,bestStart).join(':'); const after=parts.slice(bestStart+bestLen).join(':');
+    const before=parts.slice(0,bestStart).join(':');
+    const after=parts.slice(bestStart+bestLen).join(':');
     return (before?before:'')+'::'+(after?after:'');
   }
   return parts.join(':');
 }
 function ipv6ToBigInt(expanded){
-  const parts=expanded.split(':').map(h=>parseInt(h,16)); let val=0n;
+  const parts=expanded.split(':').map(h=>parseInt(h,16));
+  let val=0n;
   for(let i=0;i<8;i++){ val=(val<<16n)+BigInt(parts[i]); }
   return val;
 }
 function bigIntToIPv6(big){
   const parts=[];
   for(let i=0;i<8;i++){
-    const shift=16n*BigInt(7-i); const hex=(big>>shift)&0xffffn;
+    const shift=16n*BigInt(7-i);
+    const hex=(big>>shift)&0xffffn;
     parts.push(hex.toString(16).padStart(4,'0'));
   }
   return parts.join(':');
@@ -333,9 +499,10 @@ function bigIntToIPv6(big){
 
 /* IPv6 calculator */
 function parseIPv6Input(raw){
-  raw=raw.trim(); if(!raw) return null;
+  if(!raw) return null;
+  raw=raw.trim();
   let addr=raw, prefix=null;
-  if(raw.includes('/')){ const[a,p]=raw.split('/'); addr=a.trim(); prefix=parseInt(p.trim(),10); }
+  if(raw.includes('/')){ const [a,p]=raw.split('/'); addr=a.trim(); prefix=parseInt(p.trim(),10); }
   if(prefix===null||isNaN(prefix)||prefix<0||prefix>128) return null;
   const expanded=expandIPv6(addr); if(!expanded) return null;
   return {addr,prefix,expanded};
@@ -350,9 +517,10 @@ function calcIPv6(expanded,prefix){
   const total = hostBits===0n ? 1n : (1n<<hostBits);
   return {network,first,last,total};
 }
-function showMessage6(s,err=false){const m=document.getElementById('message6');m.className=err?'message-err':'message-ok';m.textContent=s;}
+function showMessage6(s,err=false){ const m=document.getElementById('message6'); m.className=err?'message-err':'message-ok'; m.textContent=s; }
 function renderIPv6(parsed){
-  const{addr,prefix,expanded}=parsed; const d=calcIPv6(expanded,prefix);
+  const {addr,prefix,expanded}=parsed;
+  const d=calcIPv6(expanded,prefix);
   document.getElementById('r6_address').textContent=`${addr}/${prefix}`;
   document.getElementById('r6_prefix').textContent=`${prefix}`;
   document.getElementById('r6_network').textContent=`${compressIPv6(bigIntToIPv6(d.network))}/${prefix}`;
@@ -365,15 +533,14 @@ function renderIPv6(parsed){
 document.getElementById('calcBtn6').onclick=()=>{
   showMessage6("");
   const parsed=parseIPv6Input(document.getElementById('ipv6Input').value);
-  if(!parsed){showMessage6("Invalid IPv6 input",true);document.getElementById('results6').style.display="none";return;}
+  if(!parsed){ showMessage6("Invalid IPv6 input",true); document.getElementById('results6').style.display="none"; return; }
   renderIPv6(parsed);
 };
 document.getElementById('resetBtn6').onclick=()=>{
-  document.getElementById('ipv6Input').value=""; const m=document.getElementById('message6'); m.textContent=""; m.className="";
-  document.getElementById('results6').style.display="none";
+  document.getElementById('ipv6Input').value=""; const m=document.getElementById('message6'); m.textContent=""; m.className=""; document.getElementById('results6').style.display="none";
 };
 
-/* Supernetting (IPv4) */
+/* ---------- Supernetting ---------- */
 function summarizeIPv4(networks){
   const parsed=[];
   for(const n of networks){
@@ -386,7 +553,8 @@ function summarizeIPv4(networks){
   if(parsed.length<2) return null;
   const nets=parsed.map(p=>p.net).sort((a,b)=>a-b);
   const minNet=nets[0], maxNet=nets[nets.length-1];
-  let xor=minNet^maxNet, common=0; for(let i=31;i>=0;i--){ if((xor&(1<<i))!==0) break; common++; }
+  let xor=minNet^maxNet, common=0;
+  for(let i=31;i>=0;i--){ if((xor&(1<<i))!==0) break; common++; }
   const superPrefix=common;
   const superMask=prefixToMask(superPrefix);
   const superNet=(minNet&superMask)>>>0;
@@ -397,14 +565,14 @@ function summarizeIPv4(networks){
   const last=superPrefix<=30?broadcast-1:broadcast;
   return {superNet,superPrefix,broadcast,total,usable,first,last};
 }
-function showSuper(s,err=false){const m=document.getElementById('superMessage');m.className=err?'message-err':'message-ok';m.textContent=s;}
+function showSuper(s,err=false){ const m=document.getElementById('superMessage'); m.className=err?'message-err':'message-ok'; m.textContent=s; }
 document.getElementById('superCalc').onclick=()=>{
   showSuper("");
   const raw=document.getElementById('superInput').value.trim();
   const list=raw.split(/\n|,/).map(x=>x.trim()).filter(Boolean);
-  if(list.length<2){showSuper("Enter at least two networks",true);document.getElementById('superResults').style.display="none";return;}
+  if(list.length<2){ showSuper("Enter at least two networks",true); document.getElementById('superResults').style.display="none"; return; }
   const res=summarizeIPv4(list);
-  if(!res){showSuper("Invalid networks",true);document.getElementById('superResults').style.display="none";return;}
+  if(!res){ showSuper("Invalid networks",true); document.getElementById('superResults').style.display="none"; return; }
   document.getElementById('superSupernet').textContent=`${intToIp(res.superNet)}/${res.superPrefix}`;
   document.getElementById('superSupernetBin').textContent=intToBinaryDots(res.superNet);
   document.getElementById('superNetwork').textContent=intToIp(res.superNet);
@@ -422,37 +590,22 @@ document.getElementById('superCalc').onclick=()=>{
   showSuper("Summarized ✓",false);
 };
 document.getElementById('superReset').onclick=()=>{
-  document.getElementById('superInput').value=""; const m=document.getElementById('superMessage'); m.textContent=""; m.className="";
-  document.getElementById('superResults').style.display="none";
+  document.getElementById('superInput').value=""; const m=document.getElementById('superMessage'); m.textContent=""; m.className=""; document.getElementById('superResults').style.display="none";
 };
 
-/* CIDR ↔ Netmask Converter */
+/* ---------- CIDR Converter ---------- */
 document.getElementById('cidrCalc').onclick=()=>{
   const raw=document.getElementById('cidrInput').value.trim();
   const msg=document.getElementById('cidrMessage');
   msg.textContent=""; msg.className="";
   let prefix=null, maskInt=null;
-
   if(!raw){ msg.textContent="Enter /prefix or dotted mask"; msg.className="message-err"; return; }
-
-  if(raw.startsWith('/')){
-    prefix=parseInt(raw.slice(1),10);
-    maskInt=prefixToMask(prefix);
-  } else if(raw.includes('.')){
-    maskInt=ipToInt(raw);
-    prefix=maskToPrefix(maskInt);
-  } else {
-    // allow plain number like "24"
-    const p = parseInt(raw,10);
-    if(!isNaN(p)) { prefix=p; maskInt=prefixToMask(prefix); }
-  }
-
+  if(raw.startsWith('/')){ prefix=parseInt(raw.slice(1),10); maskInt=prefixToMask(prefix); }
+  else if(raw.includes('.')){ maskInt=ipToInt(raw); prefix=maskToPrefix(maskInt); }
+  else { const p=parseInt(raw,10); if(!isNaN(p)){ prefix=p; maskInt=prefixToMask(prefix); } }
   if(prefix===null || isNaN(prefix) || prefix<0 || prefix>32 || maskInt===null){
-    msg.textContent="Invalid input"; msg.className="message-err";
-    document.getElementById('cidrResults').style.display="none";
-    return;
+    msg.textContent="Invalid input"; msg.className="message-err"; document.getElementById('cidrResults').style.display="none"; return;
   }
-
   document.getElementById('cidrPrefix').textContent=prefix;
   document.getElementById('cidrMask').textContent=intToIp(maskInt);
   document.getElementById('cidrWildcard').textContent=intToIp(wildcardFromMask(maskInt));
@@ -461,10 +614,156 @@ document.getElementById('cidrCalc').onclick=()=>{
   msg.textContent="Converted ✓"; msg.className="message-ok";
 };
 document.getElementById('cidrReset').onclick=()=>{
-  document.getElementById('cidrInput').value="";
-  document.getElementById('cidrMessage').textContent="";
-  document.getElementById('cidrResults').style.display="none";
+  document.getElementById('cidrInput').value=""; document.getElementById('cidrMessage').textContent=""; document.getElementById('cidrResults').style.display="none";
 };
+
+/* ---------- Subnet Allocation (0..32 support) ---------- */
+document.addEventListener('DOMContentLoaded', function(){
+  /* Populate CIDR sizes 0..32 */
+  const sizeSel=document.getElementById('cidrSize');
+  if(sizeSel){
+    for(let i=0;i<=32;i++){
+      const opt=document.createElement('option');
+      opt.value=i; opt.textContent='/'+i;
+      sizeSel.appendChild(opt);
+    }
+  }
+
+  function a_ipToLong(ip){ const parts=ip.trim().split('.').map(Number); if(parts.length!==4||parts.some(p=>isNaN(p)||p<0||p>255)) return null; return ((parts[0]<<24)>>>0)+((parts[1]<<16)>>>0)+((parts[2]<<8)>>>0)+parts[3]; }
+  function a_longToIp(n){ return [(n>>>24)&255,(n>>>16)&255,(n>>>8)&255,n&255].join('.'); }
+  function a_maskFromCidr(c){ if(!Number.isInteger(c)||c<0||c>32) return null; return (0xFFFFFFFF<<(32-c))>>>0; }
+  function a_blockSize(c){ return Math.pow(2,32-c); }
+  function a_dottedMask(c){ const m=a_maskFromCidr(c); return m==null?'':a_longToIp(m); }
+  function a_parseCidr(c){ const parts=(c||'').trim().split('/'); if(parts.length!==2) return null; const ip=a_ipToLong(parts[0]); const cidr=Number(parts[1]); if(ip==null||!Number.isInteger(cidr)||cidr<0||cidr>32) return null; const mask=a_maskFromCidr(cidr); const network=ip&mask; return {ip,cidr,mask,network,size:a_blockSize(cidr)}; }
+  function a_fmtUsableRange(net,c){ const s=a_blockSize(c); if(c===32) return a_longToIp(net)+" – "+a_longToIp(net); if(c===31) return a_longToIp(net)+" – "+a_longToIp(net+1); return a_longToIp(net+1)+" – "+a_longToIp(net+s-2); }
+  function a_broadcastAddr(net,c){ return a_longToIp(net+a_blockSize(c)-1); }
+  function a_alignToBoundary(addr,c){ const size=a_blockSize(c); const mask=(~(size-1))>>>0; const aligned=addr&mask; return aligned===addr?aligned:((aligned+size)>>>0); }
+  function a_rangesOverlap(aStart,aEnd,bStart,bEnd){ return Math.max(aStart,bStart)<=Math.min(aEnd,bEnd); }
+
+  const plan=[];
+
+  function renderPlan(){
+    const container=document.getElementById('planList');
+    container.innerHTML='';
+    if(plan.length===0){ container.textContent='No subnets added yet.'; return; }
+    plan.forEach((item,idx)=>{
+      const div=document.createElement('div');
+      div.className='plan-item';
+      div.style.display='flex'; div.style.gap='8px'; div.style.alignItems='center';
+      div.innerHTML=`
+        <strong>#${idx+1}</strong>
+        <div>/ ${item.cidr}</div>
+        <div>× ${item.count}</div>
+        <input type="text" placeholder="Optional start (IP)" value="${item.startIpStr||''}" data-idx="${idx}" class="start-edit" />
+        <div class="btn small" data-idx="${idx}" data-act="up">Up</div>
+        <div class="btn small" data-idx="${idx}" data-act="down">Down</div>
+        <div class="btn small" data-idx="${idx}" data-act="del">Delete</div>
+      `;
+      container.appendChild(div);
+    });
+    container.querySelectorAll('.start-edit').forEach(inp=>{
+      inp.addEventListener('input',(e)=>{ const i=Number(e.target.getAttribute('data-idx')); plan[i].startIpStr=e.target.value.trim(); });
+    });
+    container.querySelectorAll('.btn').forEach(btn=>{
+      const act=btn.getAttribute('data-act'); if(!act) return;
+      btn.addEventListener('click',(e)=>{
+        const i=Number(e.currentTarget.getAttribute('data-idx'));
+        const a=e.currentTarget.getAttribute('data-act');
+        if(a==='up'&&i>0){ [plan[i-1],plan[i]]=[plan[i],plan[i-1]]; }
+        else if(a==='down'&&i<plan.length-1){ [plan[i+1],plan[i]]=[plan[i],plan[i+1]]; }
+        else if(a==='del'){ plan.splice(i,1); }
+        renderPlan();
+      });
+    });
+  }
+
+  function showStatus(msg,type){ const el=document.getElementById('status'); el.textContent=msg; el.className='notice '+type; el.style.display='block'; }
+  function hideStatus(){ const el=document.getElementById('status'); el.textContent=''; el.className='notice'; el.style.display='none'; }
+
+  function addPlan(){
+    const cidr=Number(document.getElementById('cidrSize').value);
+    const count=Number(document.getElementById('cidrCount').value);
+    const startIpStr=document.getElementById('startIp').value.trim();
+    hideStatus();
+    if(!Number.isInteger(count)||count<1){ showStatus('Count must be a positive integer.','warn'); return; }
+    plan.push({cidr,count,startIpStr:startIpStr||''});
+    document.getElementById('startIp').value='';
+    renderPlan();
+  }
+  function clearPlan(){ plan.length=0; renderPlan(); hideStatus(); }
+
+  function allocate(){
+    hideStatus();
+    const baseStr=document.getElementById('baseCidr').value.trim();
+    const base=a_parseCidr(baseStr);
+    if(!base){ showStatus('Invalid base network. Example: 192.168.0.0/22','err'); return; }
+    if(plan.length===0){ showStatus('Add at least one subnet size.','warn'); return; }
+    const baseStart=base.network, baseEnd=base.network+base.size-1;
+    const allocations=[];
+    let cursor=baseStart;
+
+    for(const item of plan){
+      const size=a_blockSize(item.cidr);
+      for(let i=0;i<item.count;i++){
+        let net=cursor;
+        if(item.startIpStr && i===0){
+          const parsed=a_ipToLong(item.startIpStr);
+          if(parsed==null){ showStatus(`Invalid start IP: ${item.startIpStr}`,'err'); return; }
+          net=parsed;
+        }
+        net=a_alignToBoundary(net,item.cidr);
+        const end=net+size-1;
+
+        if(net<baseStart || end>baseEnd){ showStatus(`/${item.cidr} at ${a_longToIp(net)} exceeds base range.`,'err'); return; }
+
+        for(const a of allocations){
+          const aStart=a.network;
+          const aEnd=a.network+a_blockSize(a.cidr)-1;
+          if(a_rangesOverlap(net,end,aStart,aEnd)){ showStatus(`Overlap: ${a_longToIp(net)}/${item.cidr} overlaps ${a_longToIp(aStart)}/${a.cidr}.`,'err'); return; }
+        }
+
+        allocations.push({network:net,cidr:item.cidr});
+        cursor=end+1;
+      }
+    }
+
+    const table=document.getElementById('resultTable');
+    const tbody=table.querySelector('tbody');
+    tbody.innerHTML='';
+    allocations.forEach((a,idx)=>{
+      const tr=document.createElement('tr');
+      const subnetStr=`${a_longToIp(a.network)}/${a.cidr}`;
+      const mask=a_dottedMask(a.cidr);
+      const usable=a_fmtUsableRange(a.network,a.cidr);
+      const bc=a_broadcastAddr(a.network,a.cidr);
+      const size=a_blockSize(a.cidr);
+      tr.innerHTML=`
+        <td>${idx+1}</td>
+        <td>${subnetStr}</td>
+        <td>/${a.cidr}</td>
+        <td>${mask}</td>
+        <td>${usable}</td>
+        <td>${bc}</td>
+        <td>${size}</td>
+      `;
+      tbody.appendChild(tr);
+    });
+    table.style.display='table';
+    document.getElementById('allocResults').style.display='grid';
+    const remaining=(baseEnd-(cursor-1));
+    const baseInfo=`Base: ${a_longToIp(base.network)}/${base.cidr} • Mask: ${a_dottedMask(base.cidr)} • Size: ${base.size} addresses`;
+    const remInfo=remaining>0?`Remaining unallocated: ${remaining} addresses.`:'No remaining space.';
+    document.getElementById('summary').textContent=baseInfo+' | '+remInfo;
+    showStatus('Allocation complete ✓','ok');
+  }
+
+  const addBtn=document.getElementById('addBtn');
+  const clearBtn=document.getElementById('clearBtn');
+  const allocBtn=document.getElementById('allocBtn');
+  if(addBtn) addBtn.addEventListener('click', addPlan);
+  if(clearBtn) clearBtn.addEventListener('click', clearPlan);
+  if(allocBtn) allocBtn.addEventListener('click', allocate);
+});
 </script>
 
 </body>
